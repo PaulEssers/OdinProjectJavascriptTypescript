@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src", // Set the base directory for absolute imports
+    "target": "es6",
+    "module": "ES2020",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "./dist"
+  },
+  "include": [
+    "src/**/*",
+    "tests/**/*"
+  ], // Include source and test files
+  "exclude": [
+    "node_modules"
+  ]
+}
