@@ -17,12 +17,20 @@ export class Book {
     }
 }
 
-const library: Array<Book> = [];
+let library: Map<number, Book> = new Map;
 
-export function addBookToLibrary(title: string, author: string, pages: number): void {
-    const id = library.length;
+let last_id: number = 0; // keep track of bookid
+function getNextId(): number {
+    const id = last_id;
+    last_id++;
+    return id;
+}
+
+export function addBookToLibrary(title: string, author: string, pages: number): number {
+    let id = getNextId()
     let book = new Book(id, title, author, pages, false);
-    library.push(book)
+    library.set(id, book)
+    return id;
 }
 
 function createBooklistElement(): void {
@@ -57,11 +65,23 @@ function createDeleteButton(card: HTMLElement, booklist: HTMLElement, id: number
     // Add event listener to remove the card on click
     deleteButton.addEventListener("click", () => {
         booklist.removeChild(card); // Remove the card from the booklist
-        library.splice(id, 1); // remove it from the library
+        library.delete(id); // remove it from the library
     });
 
     return deleteButton;
 }
+
+// Helper function to apply the style to an element
+function applyCardStyle(element: HTMLElement): void {
+    element.style.border = "1px solid #ccc";
+    element.style.padding = "16px";
+    element.style.margin = "16px";
+    element.style.width = "300px";
+    element.style.borderRadius = "8px";
+    element.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
+    element.style.fontFamily = "Arial, sans-serif";
+}
+  
 
 // Function to create and display a card
 function displayBookCard(book: Book): void {
@@ -70,13 +90,7 @@ function displayBookCard(book: Book): void {
 
     // Create a card container
     const card = document.createElement("div");
-    card.style.border = "1px solid #ccc";
-    card.style.padding = "16px";
-    card.style.margin = "16px";
-    card.style.width = "300px";
-    card.style.borderRadius = "8px";
-    card.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.1)";
-    card.style.fontFamily = "Arial, sans-serif";
+    applyCardStyle(card)
 
     // Add book fields to the card
     const titleElement = document.createElement("h2");
@@ -91,19 +105,88 @@ function displayBookCard(book: Book): void {
     pagesElement.textContent = `Pages: ${book.pages}`;
     card.appendChild(pagesElement);
 
-    const readElement = document.createElement("p");
-    readElement.textContent = `Status: ${book.readAsString()}`;
-    card.appendChild(readElement);
+    const readInput = document.createElement("input");
+    readInput.type = "checkbox";
+    readInput.checked = book.read;
+    
+    const readLabel = document.createElement("label");
+    readLabel.textContent = "Read?";
+    card.appendChild(readInput);
+    card.appendChild(readLabel);
+
+    readInput.addEventListener("change", (event) => {
+        const isChecked = (event.target as HTMLInputElement).checked;
+        book.read = isChecked;
+      
+        // Optionally, update the display or persist the change elsewhere
+      })
 
     // get a reference to b
     const deleteButton = createDeleteButton(card, booklist, book.id)
     card.appendChild(deleteButton);
-    
+
     booklist.appendChild(card);
 
 }
 
-export function displayBookList() {
-    createBooklistElement()
-    library.forEach(displayBookCard);
+
+// Function to create and add a new book card
+function createNewBookForm(): void {
+    const form = document.createElement("form");
+    applyCardStyle(form)
+
+    const titleInput = document.createElement("input");
+    titleInput.placeholder = "Title";
+    titleInput.required = true;
+    form.appendChild(titleInput);
+
+    const authorInput = document.createElement("input");
+    authorInput.placeholder = "Author";
+    authorInput.required = true;
+    form.appendChild(authorInput);
+
+    const pagesInput = document.createElement("input");
+    pagesInput.placeholder = "Pages";
+    pagesInput.type = "number";
+    pagesInput.required = true;
+    form.appendChild(pagesInput);
+
+    const submitButton = document.createElement("button");
+    submitButton.type = "submit";
+    submitButton.textContent = "Add Book";
+    form.appendChild(submitButton);
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const new_id = addBookToLibrary(titleInput.value, authorInput.value, parseInt(pagesInput.value))
+        const new_book = library.get(new_id);
+        if (new_book) { displayBookCard(new_book) }
+
+        // Clear the form
+        titleInput.value = "";
+        authorInput.value = "";
+        pagesInput.value = "";
+
+
+    });
+
+    // Find the booklist container
+    const booklist = document.getElementById("booklist");
+    if (booklist) {
+        // Add the form as the last card in the booklist
+        const lastCard = booklist.lastElementChild;
+        if (lastCard) {
+            booklist.insertBefore(form, lastCard.nextSibling);
+        } else {
+            // If there are no books yet, just append the form directly
+            booklist.appendChild(form);
+        }
+    }
 }
+
+export function displayBookList() {
+    createBooklistElement();
+    Array.from(library.values()).forEach(displayBookCard);
+    createNewBookForm();
+}
+

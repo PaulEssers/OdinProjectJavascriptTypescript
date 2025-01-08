@@ -11,11 +11,13 @@
 
     <script type="module" src="../dist/library.js"></script>
     <script type="module">
-        import { addBookToLibrary, displayBookList } from '../dist/library.js';
+        import { library, addBookToLibrary, displayBookList } from '../dist/library.js';
         addBookToLibrary("My Book", "Me", 10);
         addBookToLibrary("Another Book", "Homeboy", 20);
-        // console.log(library)
         displayBookList()
+        
+        // for debugging
+        setInterval(console.log(library), 10);
     </script>
 
 </body>
